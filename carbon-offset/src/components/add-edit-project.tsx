@@ -5,6 +5,7 @@ import IProjectDetails from "../types/projects.type";
 type Props = {
   data: IProjectDetails;
   parentCallback: (childData: any) => void;
+  calcelCallback:() => void;
 };
 type State = {
   projectInfo: IProjectDetails;
@@ -66,6 +67,7 @@ export default class AddEditProject extends Component<Props, State> {
       projectInfo: this.state.projectInfo,
       showDialog: false,
     });
+    this.props.calcelCallback();
   }
   saveNewProject() {
     this.props.parentCallback(this.state.projectInfo);

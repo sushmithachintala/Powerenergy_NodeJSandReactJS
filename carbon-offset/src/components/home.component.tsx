@@ -1,4 +1,4 @@
-import { ChangeEvent, Component } from "react";
+import { ChangeEvent, Component, PureComponent } from "react";
 import { Button, Modal } from "react-bootstrap";
 import 'reactjs-popup/dist/index.css';
 import { SaveAndEditModal } from "../functions";
@@ -8,6 +8,7 @@ import { constants } from "buffer";
 import IUserData from "../types/user.type";
 import { Redirect } from "react-router-dom";
 import UserDataService from "../services/user.service";
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 type Props = {};
 type State = {
@@ -139,6 +140,11 @@ export default class Home extends Component<Props, State> {
         }
 
     }
+    handelClosePopup = () => {
+        this.setState({
+            showDialog: false
+        });
+    }
     handleCallback = (projectInfo: any) => {
         const { projectDetails, editProject, showDialog } = this.state;
         let data = {
@@ -197,13 +203,54 @@ export default class Home extends Component<Props, State> {
         else
             return false;
     }
+    generateGraph(): any {
+        let { projectDetails } = this.state;
+        let gridData = [{ name: '', CarbonEmission: 0, Offset: 0, amt: 5000 }];
+        gridData.splice(0,1);
+        if (projectDetails) {
+            projectDetails.forEach((item: IProjectDetails) => {
+                gridData.push({
+                    name: item.projectName,
+                    CarbonEmission: parseInt(item.carbonEmission),
+                    Offset: parseInt(item.offsetValue),
+                    amt: 5000
+                });
+            });
+        }
+        return gridData;
+    }
     render() {
+        const graphData = this.generateGraph();
         let projects = this.state;
         const ShowModal = () => {
             if (projects.showDialog) {
-                return <AddEditProject data={projects.editProject} parentCallback={this.handleCallback}></AddEditProject>
+                return <AddEditProject data={projects.editProject} calcelCallback={this.handelClosePopup} parentCallback={this.handleCallback}></AddEditProject>
             } else
                 return <div></div>
+        }
+        const ProjectBarchart = () => {
+            return <div>
+                <hr></hr>
+                <BarChart
+                    width={500}
+                    height={300}
+                    data={graphData}
+                    margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                    }}
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="CarbonEmission" fill="#8884d8" />
+                    <Bar dataKey="Offset" fill="#82ca9d" />
+                </BarChart>
+            </div>
         }
         const Table = (projects: any) => {
             if (projects && projects.data.length > 0) {
@@ -260,6 +307,7 @@ export default class Home extends Component<Props, State> {
                 Add New Project
             </Button>
             <Table data={projects.projectDetails} />
+            <ProjectBarchart />
             <ShowModal></ShowModal>
         </div >
     }
